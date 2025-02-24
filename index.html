@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Print Layout</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body class="flex flex-col items-center p-4">
+    <div class="max-w-2xl w-full bg-white p-4 shadow rounded">
+      <h2 class="text-xl font-semibold mb-4">Image Print Layout</h2>
+      <label class="block mb-2">Paper Size</label>
+      <select id="paperSize" class="w-full p-2 border rounded mb-4">
+        <option value="A4">A4 (210 × 297 mm)</option>
+        <option value="Legal">Legal (216 × 356 mm)</option>
+      </select>
+
+      <div id="imageInputs">
+        <div class="image-set mb-4 border p-4 rounded relative">
+          <input
+            class="imageUpload block w-full mb-2 file:bg-black file:rounded file:text-white file:px-2 file:py-1"
+            type="file"
+            accept="image/*"
+          />
+          <label class="block mb-2">Image Size</label>
+          <select class="imageSize w-full p-2 border rounded mb-2">
+            <option value="passport">Passport (35 × 45 mm)</option>
+            <option value="stamp">Stamp (25 × 30 mm)</option>
+          </select>
+          <label class="block mb-2">Number of Copies</label>
+          <input
+            type="number"
+            class="copies w-full p-2 border rounded mb-2"
+            min="1"
+            value="1"
+          />
+          <button
+            class="deleteImage bg-red-500 text-white p-2 rounded absolute top-2 right-2 hidden"
+          >
+            X
+          </button>
+        </div>
+      </div>
+
+      <button id="addImage" class="w-full bg-gray-500 text-white p-2 rounded">
+        Add Another Image
+      </button>
+      <button
+        id="generate"
+        class="w-full bg-blue-500 text-white p-2 rounded mt-2"
+      >
+        Generate Layout
+      </button>
+      <button
+        id="downloadPdf"
+        class="w-full bg-green-500 text-white p-2 rounded mt-2"
+      >
+        Download PDF
+      </button>
+
+      <div id="preview" class="mt-4 grid grid-cols-4 gap-4 p-4 border"></div>
+    </div>
+
+    <script>
+      function updateDeleteButtons() {
+        const sets = document.querySelectorAll(".image-set");
+        sets.forEach((set, index) => {
+          const deleteButton = set.querySelector(".deleteImage");
+          deleteButton.style.display = sets.length > 1 ? "block" : "none";
+        });
+      }
+
+      document.getElementById("addImage").addEventListener("click", () => {
+        const container = document.createElement("div");
+        container.classList.add(
+          "image-set",
+          "mb-4",
+          "border",
+          "p-4",
+          "rounded",
+          "relative"
+        );
+        container.innerHTML = `
+            <input class="imageUpload block w-full mb-2 file:bg-black file:rounded file:text-white file:px-2 file:py-1" type="file" accept="image/*">
+            <label class="block mb-2">Image Size</label>
+            <select class="imageSize w-full p-2 border rounded mb-2">
+                <option value="passport">Passport (35 × 45 mm)</option>
+                <option value="stamp">Stamp (25 × 30 mm)</option>
+            </select>
+            <label class="block mb-2">Number of Copies</label>
+            <input type="number" class="copies w-full p-2 border rounded mb-2" min="1" value="1">
+            <button class="deleteImage bg-red-500 text-white p-2 rounded absolute top-2 right-2">X</button>
+        `;
+        document.getElementById("imageInputs").appendChild(container);
+        updateDeleteButtons();
+      });
+
+      document
+        .getElementById("imageInputs")
+        .addEventListener("click", event => {
+          if (event.target.classList.contains("deleteImage")) {
+            event.target.closest(".image-set").remove();
+            updateDeleteButtons();
+          }
+        });
+
+      document.getElementById("generate").addEventListener("click", () => {
+        const preview = document.getElementById("preview");
+        preview.innerHTML = "";
+
+        let totalImages = 0;
+        const maxImages = 20; // Adjust based on paper size and image size logic
+
+        const imageSets = document.querySelectorAll(".image-set");
+        for (const set of imageSets) {
+          const imageFile = set.querySelector(".imageUpload").files[0];
+          const copies = parseInt(set.querySelector(".copies").value, 10);
+
+          totalImages += copies;
+          if (!imageFile) {
+            alert("Please upload an image for each set");
+            return;
+          }
+        }
+
+        if (totalImages > maxImages) {
+          alert(
+            "Too many images for the selected paper size. Please reduce the number of images."
+          );
+          return;
+        }
+
+        for (const set of imageSets) {
+          const imageFile = set.querySelector(".imageUpload").files[0];
+          const copies = parseInt(set.querySelector(".copies").value, 10);
+
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            const image = new Image();
+            image.src = event.target.result;
+            image.onload = function () {
+              for (let i = 0; i < copies; i++) {
+                const img = document.createElement("img");
+                img.src = image.src;
+                img.classList.add("border", "m-2");
+                img.style.width = "35mm";
+                img.style.height = "45mm";
+                preview.appendChild(img);
+              }
+            };
+          };
+          reader.readAsDataURL(imageFile);
+        }
+      });
+
+      document.getElementById("downloadPdf").addEventListener("click", () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const images = document.querySelectorAll("#preview img");
+        let x = 10,
+          y = 10;
+        images.forEach((img, index) => {
+          doc.addImage(img.src, "JPEG", x, y, 35, 45);
+          x += 40;
+          if ((index + 1) % 4 === 0) {
+            x = 10;
+            y += 50;
+          }
+        });
+
+        doc.save("layout.pdf");
+      });
+      updateDeleteButtons();
+    </script>
+  </body>
+</html>
