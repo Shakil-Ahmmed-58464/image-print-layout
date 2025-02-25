@@ -20,8 +20,8 @@
           />
           <label class="block mb-2">Image Size</label>
           <select class="imageSize w-full p-2 border rounded mb-2">
-            <option value="passport">Passport (35 × 45 mm)</option>
-            <option value="stamp">Stamp (25 × 30 mm)</option>
+            <option value="passport">Passport (45 × 55 mm)</option>
+            <option value="stamp">Stamp (20 × 25 mm)</option>
           </select>
           <label class="block mb-2">Number of Copies</label>
           <input
@@ -80,8 +80,8 @@
       <input class="imageUpload block w-full mb-2 file:bg-black file:rounded file:text-white file:px-2 file:py-1" type="file" accept="image/*">
       <label class="block mb-2">Image Size</label>
       <select class="imageSize w-full p-2 border rounded mb-2">
-        <option value="passport">Passport (35 × 45 mm)</option>
-        <option value="stamp">Stamp (25 × 30 mm)</option>
+        <option value="passport">Passport (45 × 55 mm)</option>
+        <option value="stamp">Stamp (20 × 25 mm)</option>
       </select>
       <label class="block mb-2">Number of Copies</label>
       <input type="number" class="copies w-full p-2 border rounded mb-2" min="1" value="1">
@@ -109,7 +109,7 @@
           const imageFile = set.querySelector(".imageUpload").files[0];
           const copies = parseInt(set.querySelector(".copies").value, 10);
           const imageSize = set.querySelector(".imageSize").value;
-          const sizeMap = { passport: [35, 45], stamp: [25, 30] };
+          const sizeMap = { passport: [45, 55], stamp: [20, 25] };
 
           if (!imageFile) {
             alert("Please upload an image for each set");
